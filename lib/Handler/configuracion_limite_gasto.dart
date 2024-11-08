@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../Handler/base_datos_handler.dart';
 
 class ConfiguracionLimiteGasto extends StatefulWidget {
   const ConfiguracionLimiteGasto({super.key});
@@ -12,6 +12,8 @@ class ConfiguracionLimiteGasto extends StatefulWidget {
 class _ConfiguracionLimiteGastoState extends State<ConfiguracionLimiteGasto> {
   final _formKey = GlobalKey<FormState>();
   double _limiteGasto = 0.0;
+  final _baseDatosHandler =
+      BaseDatosHandler(); // Si estás usando la base de datos para el límite
 
   @override
   void initState() {
@@ -19,20 +21,21 @@ class _ConfiguracionLimiteGastoState extends State<ConfiguracionLimiteGasto> {
     _cargarLimiteGasto();
   }
 
-  // Cargar el límite de gasto desde SharedPreferences
+  // Cargar el límite de gasto desde la base de datos o SharedPreferences
   void _cargarLimiteGasto() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    double limite = await _baseDatosHandler
+        .obtenerLimiteGasto(); // Usar SharedPreferences si no usas BD
     setState(() {
-      _limiteGasto = prefs.getDouble('limiteGasto') ?? 0.0;
+      _limiteGasto = limite;
     });
   }
 
-  // Guardar el límite de gasto en SharedPreferences
+  // Guardar el límite de gasto en la base de datos o SharedPreferences
   void _guardarLimiteGasto() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setDouble('limiteGasto', _limiteGasto);
+      await _baseDatosHandler.establecerLimiteGasto(
+          _limiteGasto); // Usar SharedPreferences si no usas BD
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Límite de gasto mensual guardado')),
       );

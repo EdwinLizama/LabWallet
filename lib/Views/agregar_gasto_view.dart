@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../Models/gasto_Model.dart';
 import '../Handler/evento_gasto_handler.dart';
+import '../Handler/base_datos_handler.dart'; // Asegúrate de tener acceso al límite de gasto
 
 class AgregarGastoVista extends StatefulWidget {
   const AgregarGastoVista({super.key});
@@ -13,13 +14,30 @@ class AgregarGastoVista extends StatefulWidget {
 class _AgregarGastoVistaState extends State<AgregarGastoVista> {
   final _formKey = GlobalKey<FormState>();
   final _eventoHandler = EventoGastoHandler();
+  final _baseDatosHandler =
+      BaseDatosHandler(); // Controlador para el límite de gasto
   double _monto = 0.0;
   String? _categoria;
   String _descripcion = "";
   DateTime _fecha = DateTime.now();
+  double _limiteGasto = 0.0;
 
-  // Método para guardar el gasto
-  void _guardarGasto() {
+  @override
+  void initState() {
+    super.initState();
+    _cargarLimiteGasto();
+  }
+
+  // Cargar el límite de gasto desde la base de datos o SharedPreferences
+  void _cargarLimiteGasto() async {
+    double limite = await _baseDatosHandler.obtenerLimiteGasto();
+    setState(() {
+      _limiteGasto = limite;
+    });
+  }
+
+  // Guardar el gasto y verificar el límite mensual
+  void _guardarGasto() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       Gasto gasto = Gasto(
@@ -28,9 +46,51 @@ class _AgregarGastoVistaState extends State<AgregarGastoVista> {
         descripcion: _descripcion,
         fecha: _fecha,
       );
-      _eventoHandler.AgregarGasto(gasto);
-      Navigator.pop(context, true); // Retorna true para indicar que se guardó
+
+      // Calcular el gasto total del mes actual
+      double totalGastoMes = await _calcularGastoMensual(_fecha);
+      double nuevoTotalMes = totalGastoMes + _monto;
+
+      // Verificar si el nuevo total excede el límite de gasto
+      if (_limiteGasto > 0 && nuevoTotalMes > _limiteGasto) {
+        _mostrarAlertaExcesoGasto(nuevoTotalMes);
+      } else {
+        await _eventoHandler.AgregarGasto(gasto);
+        Navigator.pop(context, true); // Cierra la pantalla y retorna true
+      }
     }
+  }
+
+  // Calcular el total de gastos del mes
+  Future<double> _calcularGastoMensual(DateTime fecha) async {
+    List<Gasto> gastos = await _eventoHandler.obtenerGastos();
+    String mesAnio = DateFormat('MM/yyyy').format(fecha);
+    double total = gastos
+        .where((gasto) => DateFormat('MM/yyyy').format(gasto.fecha) == mesAnio)
+        .fold(0, (sum, gasto) => sum + gasto.monto);
+    return total;
+  }
+
+  // Mostrar una alerta si se excede el límite de gasto mensual
+  void _mostrarAlertaExcesoGasto(double totalGastoMes) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Límite de Gasto Excedido"),
+          content: Text(
+            "Has superado tu límite de gasto mensual de \$$_limiteGasto.\n"
+            "Total de gastos este mes con el nuevo gasto: \$${totalGastoMes.toStringAsFixed(2)}",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Aceptar"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // Método para seleccionar la fecha

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Models/gasto_Model.dart';
 import '../Handler/evento_gasto_handler.dart';
+import '../Handler/base_datos_handler.dart';
 
 class EditarGastoVista extends StatefulWidget {
   final Gasto gasto;
@@ -13,7 +14,7 @@ class EditarGastoVista extends StatefulWidget {
 
 class _EditarGastoVistaState extends State<EditarGastoVista> {
   final _formKey = GlobalKey<FormState>();
-  final _eventoHandler = EventoGastoHandler();
+  final bd = BaseDatosHandler();
   late double _monto;
   late String _categoria;
   late String _descripcion;
@@ -28,7 +29,7 @@ class _EditarGastoVistaState extends State<EditarGastoVista> {
     _fecha = widget.gasto.fecha;
   }
 
-  void _guardarCambios() {
+  void _guardarCambios() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       Gasto gastoActualizado = Gasto(
@@ -38,8 +39,10 @@ class _EditarGastoVistaState extends State<EditarGastoVista> {
         descripcion: _descripcion,
         fecha: _fecha,
       );
-      _eventoHandler.AgregarGasto(gastoActualizado);
-      Navigator.pop(context);
+      await bd.actualizarGasto(
+          gastoActualizado); // Llamada al método de actualización
+      Navigator.pop(
+          context, true); // Retorna true para indicar que se actualizó
     }
   }
 
