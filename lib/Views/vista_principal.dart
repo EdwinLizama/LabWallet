@@ -168,7 +168,7 @@ class _VistaPrincipalState extends State<VistaPrincipal> {
               );
             },
           ),
-          IconButton(
+          /*    IconButton(
             icon: const Icon(Icons.circle),
             tooltip: 'Reporte Categoria',
             onPressed: () {
@@ -178,7 +178,7 @@ class _VistaPrincipalState extends State<VistaPrincipal> {
                     builder: (context) => const ReporteCategoria()),
               );
             },
-          ),
+          ),*/
         ],
       ),
       body: Column(

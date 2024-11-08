@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import '../Handler/evento_gasto_handler.dart';
 
@@ -101,4 +101,4 @@ class _ReporteCategoriaState extends State<ReporteCategoria> {
       ),
     );
   }
-}
+}*/
