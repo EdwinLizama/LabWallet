@@ -8,6 +8,7 @@ class AgregarGastoVista extends StatefulWidget {
   const AgregarGastoVista({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AgregarGastoVistaState createState() => _AgregarGastoVistaState();
 }
 
@@ -56,6 +57,7 @@ class _AgregarGastoVistaState extends State<AgregarGastoVista> {
         _mostrarAlertaExcesoGasto(nuevoTotalMes);
       } else {
         await _eventoHandler.AgregarGasto(gasto);
+        // ignore: use_build_context_synchronously
         Navigator.pop(context, true); // Cierra la pantalla y retorna true
       }
     }

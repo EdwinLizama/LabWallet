@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-
 import '../Models/gasto_Model.dart';
 import '../Controller/gasto_Controller.dart';
 
@@ -53,6 +52,26 @@ class EventoGastoHandler {
         print("Error al obtener gastos: $e");
       }
       return [];
+    }
+  }
+
+  // método para obtener los gastos agrupados por categoría
+  Future<Map<String, double>> obtenerGastosPorCategoria() async {
+    try {
+      List<Gasto> gastos = await _controlador.obtenerGastos();
+      Map<String, double> gastosPorCategoria = {};
+
+      for (var gasto in gastos) {
+        gastosPorCategoria[gasto.categoria] =
+            (gastosPorCategoria[gasto.categoria] ?? 0) + gasto.monto;
+      }
+
+      return gastosPorCategoria;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error al obtener gastos por categoría: $e");
+      }
+      return {};
     }
   }
 }

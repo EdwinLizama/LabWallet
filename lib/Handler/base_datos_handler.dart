@@ -6,6 +6,8 @@ class BaseDatosHandler {
   static final BaseDatosHandler _instancia = BaseDatosHandler._interno();
   Database? _baseDatos;
 
+  static var instance;
+
   factory BaseDatosHandler() => _instancia;
 
   BaseDatosHandler._interno();

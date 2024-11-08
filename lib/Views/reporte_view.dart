@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import '../Models/gasto_Model.dart';
 import '../Handler/evento_gasto_handler.dart';
+import 'package:intl/intl.dart';
 
 class ReporteVista extends StatefulWidget {
   const ReporteVista({super.key});
@@ -12,87 +13,82 @@ class ReporteVista extends StatefulWidget {
 
 class _ReporteVistaState extends State<ReporteVista> {
   final EventoGastoHandler eventoHandler = EventoGastoHandler();
-  Map<String, double> _gastosPorCategoria = {};
+  Map<String, double> _gastosPorMes = {};
 
   @override
   void initState() {
     super.initState();
-    _cargarGastosPorCategoria();
+    _cargarGastosPorMes();
   }
 
-  // Método para cargar los gastos y agruparlos por categoría
-  void _cargarGastosPorCategoria() async {
+  // Método para cargar los gastos y agruparlos por mes
+  void _cargarGastosPorMes() async {
     List<Gasto> gastos = await eventoHandler.obtenerGastos();
-    Map<String, double> gastosPorCategoria = {};
+    Map<String, double> gastosPorMes = {};
 
     for (var gasto in gastos) {
-      // Sumar los gastos en la categoría correspondiente
-      gastosPorCategoria[gasto.categoria] =
-          (gastosPorCategoria[gasto.categoria] ?? 0) + gasto.monto;
+      // Formatear la fecha para obtener solo el mes y el año (ej. "08/2023")
+      String mesAnio = DateFormat('MM/yyyy').format(gasto.fecha);
+
+      // Sumar los gastos en el mes correspondiente
+      gastosPorMes[mesAnio] = (gastosPorMes[mesAnio] ?? 0) + gasto.monto;
     }
 
     setState(() {
-      _gastosPorCategoria = gastosPorCategoria;
+      _gastosPorMes = gastosPorMes;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Crear los datos para el gráfico circular
+    // Crear los datos para el gráfico de barras
     List<charts.Series<MapEntry<String, double>, String>> series = [
       charts.Series(
-        id: 'GastosPorCategoria',
-        data: _gastosPorCategoria.entries.toList(),
+        id: 'GastosMensuales',
+        data: _gastosPorMes.entries.toList(),
         domainFn: (MapEntry<String, double> entry, _) => entry.key,
         measureFn: (MapEntry<String, double> entry, _) => entry.value,
-        colorFn: (_, index) =>
-            charts.MaterialPalette.blue.makeShades(10)[index! % 10],
+        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
         labelAccessorFn: (MapEntry<String, double> entry, _) =>
-            '${entry.key}: \$${entry.value.toStringAsFixed(2)}',
+            '\$${entry.value.toStringAsFixed(2)}',
       ),
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Distribución de Gastos por Categoría")),
+      appBar: AppBar(title: const Text("Resumen de Gastos por Mes")),
       body: Center(
-        child: _gastosPorCategoria.isEmpty
+        child: _gastosPorMes.isEmpty
             ? const Text("No hay datos para mostrar.")
             : Column(
                 children: [
                   const Padding(
                     padding: EdgeInsets.all(16.0),
                     child: Text(
-                      "Resumen de Gastos por Categoría",
+                      "Resumen de Gastos Mensuales",
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  // Gráfico circular de gastos por categoría
+                  // Gráfico de barras de gastos por mes
                   SizedBox(
                     height: 300,
-                    child: charts.PieChart(
+                    child: charts.BarChart(
                       series,
                       animate: true,
-                      defaultRenderer: charts.ArcRendererConfig(
-                        arcRendererDecorators: [
-                          charts.ArcLabelDecorator(
-                            labelPosition: charts.ArcLabelPosition.inside,
-                          ),
-                        ],
-                      ),
+                      barRendererDecorator: charts.BarLabelDecorator<String>(),
+                      domainAxis: const charts.OrdinalAxisSpec(),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Lista de categorías con el gasto total en cada una
+                  // Lista de meses con el gasto total de cada mes
                   Expanded(
                     child: ListView.builder(
-                      itemCount: _gastosPorCategoria.length,
+                      itemCount: _gastosPorMes.length,
                       itemBuilder: (context, index) {
-                        String categoria =
-                            _gastosPorCategoria.keys.elementAt(index);
-                        double total = _gastosPorCategoria[categoria]!;
+                        String mesAnio = _gastosPorMes.keys.elementAt(index);
+                        double total = _gastosPorMes[mesAnio]!;
                         return ListTile(
-                          title: Text(categoria),
+                          title: Text(mesAnio),
                           trailing: Text('\$${total.toStringAsFixed(2)}'),
                         );
                       },

@@ -8,7 +8,8 @@ import 'agregar_gasto_view.dart';
 import 'editar_gasto_view.dart';
 import 'filtrar_gasto_view.dart';
 import 'reporte_view.dart';
-import '../Handler/configuracion_limite_gasto.dart'; // Importar la vista de configuración de límite
+import '../Handler/configuracion_limite_gasto.dart';
+import 'circular_view.dart';
 
 class VistaPrincipal extends StatefulWidget {
   const VistaPrincipal({super.key});
@@ -164,6 +165,17 @@ class _VistaPrincipalState extends State<VistaPrincipal> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ReporteVista()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.circle),
+            tooltip: 'Reporte Categoria',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ReporteCategoria()),
               );
             },
           ),
